@@ -1,8 +1,10 @@
 <?php
+
 namespace Inchoo\Stripe\Model;
 
 class Payment extends \Magento\Payment\Model\Method\Cc
 {
+
 	const CODE = 'inchoo_stripe';
 	
 	protected $_code = self::CODE;
@@ -11,13 +13,135 @@ class Payment extends \Magento\Payment\Model\Method\Cc
 	protected $_canCapture                  = true;
 	protected $_canCapturePartial           = true;
 	protected $_canRefund                   = true;
-		
-	public function capture(\Magento\Framework\Object $payment, $amount)
+    protected $_canRefundInvoicePartial     = true;
+
+    protected $_stripeApi = false;
+
+    protected $_minAmount = null;
+    protected $_maxAmount = null;
+    protected $_supportedCurrencyCodes = array('USD');
+
+    public function __construct(
+        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\Payment\Helper\Data $paymentData,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Framework\Logger\AdapterFactory $logAdapterFactory,
+        \Magento\Framework\Logger $logger,
+        \Magento\Framework\Module\ModuleListInterface $moduleList,
+        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
+        \Magento\Centinel\Model\Service $centinelService,
+        \Stripe\Api $stripe,
+        array $data = array()
+    ) {
+        parent::__construct($eventManager, $paymentData, $scopeConfig, $logAdapterFactory, $logger, $moduleList, $localeDate, $centinelService, $data);
+
+        $this->_stripeApi = $stripe;
+        $this->_stripeApi->setApiKey(
+            $this->getConfigData('api_key')
+        );
+
+        $this->_minAmount = $this->getConfigData('min_order_total');
+        $this->_maxAmount = $this->getConfigData('max_order_total');
+    }
+
+    /**
+     * @param \Magento\Framework\Object
+     * @param float $amount
+     * @return $this
+     */
+    public function capture(\Magento\Framework\Object $payment, $amount)
 	{
-		
-		throw new \Magento\Framework\Model\Exception(__('Stop'));
-	
+        /** @var Magento\Sales\Model\Order $order */
+		$order = $payment->getOrder();
+
+        /** @var Magento\Sales\Model\Order\Address $billing */
+        $billing = $order->getBillingAddress();
+
+        try {
+            $charge = \Stripe_Charge::create(array(
+                'amount'        => $amount * 100,
+                'currency'      => strtolower($order->getBaseCurrencyCode()),
+                'description'   => sprintf('#%s, %s', $order->getIncrementId(), $order->getCustomerEmail()),
+                'card'          => array(
+                    'number'            => $payment->getCcNumber(),
+                    'number'			=> $payment->getCcNumber(),
+                    'exp_month'			=> sprintf('%02d',$payment->getCcExpMonth()),
+                    'exp_year'			=> $payment->getCcExpYear(),
+                    'cvc'				=> $payment->getCcCid(),
+                    'name'				=> $billing->getName(),
+                    'address_line1'		=> $billing->getStreet(1),
+                    'address_line2'		=> $billing->getStreet(2),
+                    'address_zip'		=> $billing->getPostcode(),
+                    'address_state'		=> $billing->getRegion(),
+                    'address_country'	=> $billing->getCountry(),
+                ),
+            ));
+
+            $payment
+                ->setTransactionId($charge->id)
+                ->setIsTransactionClosed(0);
+        } catch (\Exception $e) {
+            $this->debugData($e->getMessage());
+            $this->_logger->logException('Payment capturing error');
+        }
+
 		return $this;
-	}	
+	}
+
+    public function refund(\Magento\Framework\Object $payment, $amount)
+    {
+        $transactionId = $payment->getParentTransactionId();
+
+        try {
+            \Stripe_Charge::retrieve($transactionId)->refund();
+        } catch (\Exception $e) {
+            $this->debugData($e->getMessage());
+            $this->_logger->logException('Payment refunding error.');
+        }
+
+        $payment
+            ->setTransactionId($transactionId . '-' . \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND)
+            ->setParentTransactionId($transactionId)
+            ->setIsTransactionClosed(1)
+            ->setShouldCloseParentTransaction(1);
+
+        return $this;
+    }
+
+    /**
+     * Determine method availability based on quote amount and config data
+     *
+     * @param null $quote
+     * @return bool
+     */
+    public function isAvailable($quote = null)
+    {
+        if ($quote && (
+            $quote->getBaseGrandTotal() < $this->_minAmount
+            || ($this->_maxAmount && $quote->getBaseGrandTotal() > $this->_maxAmount))
+        ) {
+            return false;
+        }
+
+        if (!$this->getConfigData('api_key')) {
+            return false;
+        }
+
+        return parent::isAvailable($quote);
+    }
+
+    /**
+     * Availability for currency
+     *
+     * @param string $currencyCode
+     * @return bool
+     */
+    public function canUseForCurrency($currencyCode)
+    {
+        if (!in_array($currencyCode, $this->_supportedCurrencyCodes)) {
+            return false;
+        }
+        return true;
+    }
 	
 }
