@@ -26,14 +26,6 @@
                     <label>Credit Card Types</label>
                     <source_model>Inchoo\Stripe\Model\Source\Cctype</source_model>
                 </field>
-
-                <!--
-                <field id="order_status" translate="label" type="select" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>New Order Status</label>
-                    <source_model>Magento\Sales\Model\Config\Source\Order\Status\Processing</source_model>
-                </field>
-                -->
-
                 <field id="sort_order" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Sort Order</label>
                 </field>
@@ -52,12 +44,6 @@
                     <label>Maximum Order Total</label>
                     <comment>Leave empty to disable limit</comment>
                 </field>
-				<!-- 
-				 <field id="payment_action" translate="label" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="0">
-				     <label>Payment Action</label>
-				     <source_model>Magento\Authorizenet\Model\Authorizenet\Source\PaymentAction</source_model>
-				 </field>
-				 -->
             </group>
         </section>
     </system>

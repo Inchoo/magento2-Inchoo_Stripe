@@ -1,18 +1,27 @@
 <?php
 
+/**
+ * Stripe payment method model
+ *
+ * @category	Inchoo
+ * @package		Inchoo_Stripe
+ * @author		Ivan Weiler <ivan.weiler@inchoo.net> & Stjepan Udovičić <stjepan.udovicic@inchoo.net>
+ * @copyright	Inchoo (http://inchoo.net)
+ * @license		http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+
 namespace Inchoo\Stripe\Model;
 
 class Payment extends \Magento\Payment\Model\Method\Cc
 {
+    const CODE = 'inchoo_stripe';
 
-	const CODE = 'inchoo_stripe';
-	
-	protected $_code = self::CODE;
+    protected $_code = self::CODE;
 
-	protected $_isGateway                   = true;
-	protected $_canCapture                  = true;
-	protected $_canCapturePartial           = true;
-	protected $_canRefund                   = true;
+    protected $_isGateway                   = true;
+    protected $_canCapture                  = true;
+    protected $_canCapturePartial           = true;
+    protected $_canRefund                   = true;
     protected $_canRefundInvoicePartial     = true;
 
     protected $_stripeApi = false;
@@ -45,14 +54,17 @@ class Payment extends \Magento\Payment\Model\Method\Cc
     }
 
     /**
-     * @param \Magento\Framework\Object
+     * Payment capturing
+     *
+     * @param \Magento\Framework\Object $payment
      * @param float $amount
      * @return $this
+     * @throws \Magento\Framework\Model\Exception
      */
     public function capture(\Magento\Framework\Object $payment, $amount)
-	{
+    {
         /** @var Magento\Sales\Model\Order $order */
-		$order = $payment->getOrder();
+        $order = $payment->getOrder();
 
         /** @var Magento\Sales\Model\Order\Address $billing */
         $billing = $order->getBillingAddress();
@@ -82,12 +94,21 @@ class Payment extends \Magento\Payment\Model\Method\Cc
                 ->setIsTransactionClosed(0);
         } catch (\Exception $e) {
             $this->debugData($e->getMessage());
-            $this->_logger->logException('Payment capturing error');
+            $this->_logger->logException(__('Payment capturing error.'));
+            throw new \Magento\Framework\Model\Exception(__('Payment capturing error.'));
         }
 
-		return $this;
-	}
+        return $this;
+    }
 
+    /**
+     * Payment refund
+     *
+     * @param \Magento\Framework\Object $payment
+     * @param float $amount
+     * @return $this
+     * @throws \Magento\Framework\Model\Exception
+     */
     public function refund(\Magento\Framework\Object $payment, $amount)
     {
         $transactionId = $payment->getParentTransactionId();
@@ -96,7 +117,8 @@ class Payment extends \Magento\Payment\Model\Method\Cc
             \Stripe_Charge::retrieve($transactionId)->refund();
         } catch (\Exception $e) {
             $this->debugData($e->getMessage());
-            $this->_logger->logException('Payment refunding error.');
+            $this->_logger->logException(__('Payment refunding error.'));
+            throw new \Magento\Framework\Model\Exception(__('Payment refunding error.'));
         }
 
         $payment
@@ -143,5 +165,4 @@ class Payment extends \Magento\Payment\Model\Method\Cc
         }
         return true;
     }
-	
 }

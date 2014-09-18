@@ -4,8 +4,8 @@
         <payment>
             <inchoo_stripe>
                 <active>0</active>
-				<model>Inchoo\Stripe\Model\Payment</model>
-				<payment_action>authorize_capture</payment_action>
+                <model>Inchoo\Stripe\Model\Payment</model>
+                <payment_action>authorize_capture</payment_action>
                 <title>Stripe</title>
                 <api_key backend_model="Magento\Backend\Model\Config\Backend\Encrypted" />
                 <cctypes>AE,VI,MC,DI,JCB</cctypes>
