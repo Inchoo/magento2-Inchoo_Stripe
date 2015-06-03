@@ -1,13 +1,9 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../lib/internal/Magento/Framework/Module/etc/module.xsd">
-    <module name="Inchoo_Stripe" schema_version="1.0.0.0" active="true">
+    <module name="Inchoo_Stripe" setup_version="1.0.0">
         <sequence>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Payment"/>
+            <module name="Magento_Sales" />
+            <module name="Magento_Payment" />
         </sequence>
-        <depends>
-            <module name="Magento_Sales"/>
-            <module name="Magento_Payment"/>
-        </depends>
     </module>
 </config>

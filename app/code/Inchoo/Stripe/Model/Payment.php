@@ -31,18 +31,30 @@ class Payment extends \Magento\Payment\Model\Method\Cc
     protected $_supportedCurrencyCodes = array('USD');
 
     public function __construct(
-        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
+        \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Framework\Logger\AdapterFactory $logAdapterFactory,
-        \Magento\Framework\Logger $logger,
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
-        \Magento\Centinel\Model\Service $centinelService,
         \Stripe\Api $stripe,
         array $data = array()
     ) {
-        parent::__construct($eventManager, $paymentData, $scopeConfig, $logAdapterFactory, $logger, $moduleList, $localeDate, $centinelService, $data);
+        parent::__construct(
+            $context,
+            $registry,
+            $extensionFactory,
+            $customAttributeFactory,
+            $paymentData,
+            $scopeConfig,
+            $moduleList,
+            $localeDate,
+            null,
+            null,
+            $data
+        );
 
         $this->_stripeApi = $stripe;
         $this->_stripeApi->setApiKey(
@@ -59,14 +71,14 @@ class Payment extends \Magento\Payment\Model\Method\Cc
      * @param \Magento\Framework\Object $payment
      * @param float $amount
      * @return $this
-     * @throws \Magento\Framework\Model\Exception
+     * @throws \Magento\Framework\Validator\Exception
      */
     public function capture(\Magento\Framework\Object $payment, $amount)
     {
-        /** @var Magento\Sales\Model\Order $order */
+        /** @var \Magento\Sales\Model\Order $order */
         $order = $payment->getOrder();
 
-        /** @var Magento\Sales\Model\Order\Address $billing */
+        /** @var \Magento\Sales\Model\Order\Address $billing */
         $billing = $order->getBillingAddress();
 
         try {
@@ -76,7 +88,6 @@ class Payment extends \Magento\Payment\Model\Method\Cc
                 'description'   => sprintf('#%s, %s', $order->getIncrementId(), $order->getCustomerEmail()),
                 'card'          => array(
                     'number'            => $payment->getCcNumber(),
-                    'number'			=> $payment->getCcNumber(),
                     'exp_month'			=> sprintf('%02d',$payment->getCcExpMonth()),
                     'exp_year'			=> $payment->getCcExpYear(),
                     'cvc'				=> $payment->getCcCid(),
@@ -94,8 +105,8 @@ class Payment extends \Magento\Payment\Model\Method\Cc
                 ->setIsTransactionClosed(0);
         } catch (\Exception $e) {
             $this->debugData($e->getMessage());
-            $this->_logger->logException(__('Payment capturing error.'));
-            throw new \Magento\Framework\Model\Exception(__('Payment capturing error.'));
+            $this->_logger->error(__('Payment capturing error.'));
+            throw new \Magento\Framework\Validator\Exception(__('Payment capturing error.'));
         }
 
         return $this;
@@ -107,7 +118,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
      * @param \Magento\Framework\Object $payment
      * @param float $amount
      * @return $this
-     * @throws \Magento\Framework\Model\Exception
+     * @throws \Magento\Framework\Validator\Exception
      */
     public function refund(\Magento\Framework\Object $payment, $amount)
     {
@@ -117,8 +128,8 @@ class Payment extends \Magento\Payment\Model\Method\Cc
             \Stripe_Charge::retrieve($transactionId)->refund();
         } catch (\Exception $e) {
             $this->debugData($e->getMessage());
-            $this->_logger->logException(__('Payment refunding error.'));
-            throw new \Magento\Framework\Model\Exception(__('Payment refunding error.'));
+            $this->_logger->error(__('Payment refunding error.'));
+            throw new \Magento\Framework\Validator\Exception(__('Payment refunding error.'));
         }
 
         $payment
