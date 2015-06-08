@@ -4,7 +4,7 @@
     "type": "magento2-module",
     "version": "dev-develop",
     "license": [
-        "OSL-3.0",
+        "OSL-3.0"
     ],
     "require": {
         "stripe/stripe-php": "2.*"
