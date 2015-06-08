@@ -2,7 +2,7 @@
     "name": "inchoo/stripe",
     "description": "Stripe integration for Magento 2",
     "type": "magento2-module",
-    "version": "1.0",
+    "version": "dev-composer",
     "license": [
         "OSL-3.0"
     ],
