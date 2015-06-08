@@ -6,10 +6,17 @@
 /*global define*/
 define(
     [
-        'Magento_Checkout/js/view/payment/method-info'
+        'Magento_Checkout/js/view/payment/method-info',
+        'mage/translate'
     ],
-    function (methodInfo) {
+    function (methodInfo, $t) {
+
         return methodInfo.extend({
+
+            isActive: function() {
+                return true;
+            },
+
             defaults: {
                 creditCardType: '',
                 creditCardExpYear: '',
@@ -20,7 +27,8 @@ define(
                 creditCardVerificationNumber: ''
             },
             getInstructions: function() {
-                return window.checkoutConfig.payment.instructions[this.getCode()];
+                //return window.checkoutConfig.payment.instructions[this.getCode()];
+                return false;
             },
             getInfo: function() {
                 var info = [];
@@ -29,37 +37,22 @@ define(
                 }
                 return info;
             },
-            isShowLegend: function() {
-                return false;
-            },
-            isActive: function() {
-                return true;
-            },
-            getCcTypeTitleByCode: function(code) {
-                var title = '';
-                _.each(this.getCcAvailableTypesValues(), function (value) {
-                    if (value['value'] == code) {
-                        title = value['type'];
-                    }
-                });
-                return title;
-            },
             formatDisplayCcNumber: function(number) {
                 return 'xxxx-' + number.substr(-4);
             },
-            //initObservable: function () {
-            //    this._super()
-            //        .observe([
-            //            'creditCardType',
-            //            'creditCardExpYear',
-            //            'creditCardExpMonth',
-            //            'creditCardNumber',
-            //            'creditCardVerificationNumber',
-            //            'creditCardSsStartMonth',
-            //            'creditCardSsStartYear'
-            //        ]);
-            //    return this;
-            //},
+            initObservable: function () {
+                this._super()
+                    .observe([
+                        'creditCardType',
+                        'creditCardExpYear',
+                        'creditCardExpMonth',
+                        'creditCardNumber',
+                        'creditCardVerificationNumber',
+                        'creditCardSsStartMonth',
+                        'creditCardSsStartYear'
+                    ]);
+                return this;
+            },
             getData: function() {
                 return {
                     'cc_type': this.creditCardType(),
@@ -131,6 +124,18 @@ define(
                         'year': value
                     }
                 });
+            },
+            isShowLegend: function() {
+                return false;
+            },
+            getCcTypeTitleByCode: function(code) {
+                var title = '';
+                _.each(this.getCcAvailableTypesValues(), function (value) {
+                    if (value['value'] == code) {
+                        title = value['type'];
+                    }
+                });
+                return title;
             }
         });
     }
