@@ -17,5 +17,5 @@ composer config repositories.inchoostripe vcs git@github.com:Inchoo/magento2-Inc
 And install with 
 
 ```bash
-composer require inchoo/stripe:dev-composer
+composer require inchoo/stripe:dev-develop
 ```
