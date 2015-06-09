@@ -37,10 +37,10 @@ class Payment extends \Magento\Payment\Model\Method\Cc
         \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-//        \Magento\Payment\Model\Method\Logger $logger, //added in 0.74.0-beta12
+        \Magento\Payment\Model\Method\Logger $logger, //added in 0.74.0-beta12
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
-        \Stripe\Api $stripe,
+        \Stripe\Stripe $stripe,
         array $data = array()
     ) {
         parent::__construct(
@@ -50,7 +50,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
             $customAttributeFactory,
             $paymentData,
             $scopeConfig,
-            //$logger,  //added in 0.74.0-beta12
+            $logger,  //added in 0.74.0-beta12
             $moduleList,
             $localeDate,
             null,
@@ -84,7 +84,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
         $billing = $order->getBillingAddress();
 
         try {
-            $charge = \Stripe_Charge::create(array(
+            $charge = \Stripe\Charge::create(array(
                 'amount'        => $amount * 100,
                 'currency'      => strtolower($order->getBaseCurrencyCode()),
                 'description'   => sprintf('#%s, %s', $order->getIncrementId(), $order->getCustomerEmail()),
@@ -127,7 +127,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
         $transactionId = $payment->getParentTransactionId();
 
         try {
-            \Stripe_Charge::retrieve($transactionId)->refund();
+            \Stripe\Charge::retrieve($transactionId)->refund();
         } catch (\Exception $e) {
             $this->debugData($e->getMessage());
             $this->_logger->error(__('Payment refunding error.'));
