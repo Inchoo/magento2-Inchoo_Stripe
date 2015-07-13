@@ -1,13 +1,12 @@
 <?php
-
 /**
  * Stripe payment method model
  *
- * @category	Inchoo
- * @package		Inchoo_Stripe
- * @author		Ivan Weiler <ivan.weiler@inchoo.net> & Stjepan Udovičić <stjepan.udovicic@inchoo.net>
- * @copyright	Inchoo (http://inchoo.net)
- * @license		http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category    Inchoo
+ * @package     Inchoo_Stripe
+ * @author      Ivan Weiler <ivan.weiler@inchoo.net> & Stjepan Udovičić <stjepan.udovicic@inchoo.net>
+ * @copyright   Inchoo (http://inchoo.net)
+ * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
 namespace Inchoo\Stripe\Model;
@@ -26,9 +25,13 @@ class Payment extends \Magento\Payment\Model\Method\Cc
 
     protected $_stripeApi = false;
 
+    protected $_countryFactory;
+
     protected $_minAmount = null;
     protected $_maxAmount = null;
     protected $_supportedCurrencyCodes = array('USD');
+
+    protected $_debugReplacePrivateDataKeys = ['number', 'exp_month', 'exp_year', 'cvc'];
 
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -40,6 +43,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
         \Magento\Payment\Model\Method\Logger $logger,
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
+        \Magento\Directory\Model\CountryFactory $countryFactory,
         \Stripe\Stripe $stripe,
         array $data = array()
     ) {
@@ -58,6 +62,8 @@ class Payment extends \Magento\Payment\Model\Method\Cc
             $data
         );
 
+        $this->_countryFactory = $countryFactory;
+
         $this->_stripeApi = $stripe;
         $this->_stripeApi->setApiKey(
             $this->getConfigData('api_key')
@@ -70,7 +76,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
     /**
      * Payment capturing
      *
-     * @param \Magento\Framework\Object $payment
+     * @param \Magento\Payment\Model\InfoInterface $payment
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Validator\Exception
@@ -86,29 +92,32 @@ class Payment extends \Magento\Payment\Model\Method\Cc
         $billing = $order->getBillingAddress();
 
         try {
-            $charge = \Stripe\Charge::create(array(
+            $requestData = [
                 'amount'        => $amount * 100,
                 'currency'      => strtolower($order->getBaseCurrencyCode()),
                 'description'   => sprintf('#%s, %s', $order->getIncrementId(), $order->getCustomerEmail()),
-                'card'          => array(
+                'card'          => [
                     'number'            => $payment->getCcNumber(),
                     'exp_month'         => sprintf('%02d',$payment->getCcExpMonth()),
                     'exp_year'          => $payment->getCcExpYear(),
                     'cvc'               => $payment->getCcCid(),
                     'name'              => $billing->getName(),
-                    'address_line1'     => $billing->getStreet(1),
-                    'address_line2'     => $billing->getStreet(2),
+                    'address_line1'     => $billing->getStreetLine(1),
+                    'address_line2'     => $billing->getStreetLine(2),
+                    'address_city'      => $billing->getCity(),
                     'address_zip'       => $billing->getPostcode(),
                     'address_state'     => $billing->getRegion(),
-                    'address_country'   => $billing->getCountry(),
-                ),
-            ));
+                    'address_country'   => $this->_countryFactory->create()->loadByCode($billing->getCountryId())->getName(),
+                ]
+            ];
 
+            $charge = \Stripe\Charge::create($requestData);
             $payment
                 ->setTransactionId($charge->id)
                 ->setIsTransactionClosed(0);
+
         } catch (\Exception $e) {
-            $this->debugData($e->getMessage());
+            $this->debugData(['request' => $requestData, 'exception' => $e->getMessage()]);
             $this->_logger->error(__('Payment capturing error.'));
             throw new \Magento\Framework\Validator\Exception(__('Payment capturing error.'));
         }
@@ -119,7 +128,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
     /**
      * Payment refund
      *
-     * @param \Magento\Framework\Object $payment
+     * @param \Magento\Payment\Model\InfoInterface $payment
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Validator\Exception
@@ -131,7 +140,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
         try {
             \Stripe\Charge::retrieve($transactionId)->refund();
         } catch (\Exception $e) {
-            $this->debugData($e->getMessage());
+            $this->debugData(['transaction_id' => $transactionId, 'exception' => $e->getMessage()]);
             $this->_logger->error(__('Payment refunding error.'));
             throw new \Magento\Framework\Validator\Exception(__('Payment refunding error.'));
         }
