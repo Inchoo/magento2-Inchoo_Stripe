@@ -37,7 +37,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
         \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Payment\Model\Method\Logger $logger, //added in 0.74.0-beta12
+        \Magento\Payment\Model\Method\Logger $logger,
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Stripe\Stripe $stripe,
@@ -50,7 +50,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
             $customAttributeFactory,
             $paymentData,
             $scopeConfig,
-            $logger,  //added in 0.74.0-beta12
+            $logger,
             $moduleList,
             $localeDate,
             null,
@@ -77,6 +77,8 @@ class Payment extends \Magento\Payment\Model\Method\Cc
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
+        //throw new \Magento\Framework\Validator\Exception(__('Inside Stripe, throwing donuts :]'));
+
         /** @var \Magento\Sales\Model\Order $order */
         $order = $payment->getOrder();
 

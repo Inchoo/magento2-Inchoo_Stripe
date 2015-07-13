@@ -12,6 +12,10 @@ define(
         'use strict';
 
         return Component.extend({
+            defaults: {
+                template: 'Inchoo_Stripe/payment/stripe-form'
+            },
+
             getCode: function() {
                 return 'inchoo_stripe';
             },
