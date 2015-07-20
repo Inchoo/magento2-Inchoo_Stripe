@@ -12,8 +12,6 @@
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
-                <!--item name="inchoo_stripe_instructions_config_provider" xsi:type="object">Inchoo\Stripe\Model\InstructionsConfigProvider</item-->
-                <!--item name="inchoo_stripe_config_provider" xsi:type="object">Inchoo\Stripe\Model\ConfigProvider</item-->
                 <item name="inchoo_stripe_config_provider" xsi:type="object">Inchoo\Stripe\Model\ConfigProvider</item>
             </argument>
         </arguments>
