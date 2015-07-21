@@ -107,7 +107,9 @@ class Payment extends \Magento\Payment\Model\Method\Cc
                     'address_city'      => $billing->getCity(),
                     'address_zip'       => $billing->getPostcode(),
                     'address_state'     => $billing->getRegion(),
-                    'address_country'   => $this->_countryFactory->create()->loadByCode($billing->getCountryId())->getName(),
+                    'address_country'   => $billing->getCountryId(),
+                    // To get full localized country name, use this instead:
+                    // 'address_country'   => $this->_countryFactory->create()->loadByCode($billing->getCountryId())->getName(),
                 ]
             ];
 
