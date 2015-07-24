@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!--
+/**
+* Inchoo_Stripe default configuration
+*
+* @category    Inchoo
+* @package     Inchoo_Stripe
+* @author      Ivan Weiler <ivan.weiler@inchoo.net> & Stjepan Udovičić <stjepan.udovicic@inchoo.net>
+* @copyright   Inchoo (http://inchoo.net)
+* @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+*/
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../Magento/Store/etc/config.xsd">
+    <default>
+        <payment>
+            <inchoo_stripe>
+                <active>0</active>
+                <model>Inchoo\Stripe\Model\Payment</model>
+                <payment_action>authorize_capture</payment_action>
+                <title>Stripe</title>
+                <api_key backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <cctypes>AE,VI,MC,DI,JCB</cctypes>
+                <allowspecific>0</allowspecific>
+                <min_order_total>0.50</min_order_total>
+            </inchoo_stripe>
+        </payment>
+    </default>
+</config>
