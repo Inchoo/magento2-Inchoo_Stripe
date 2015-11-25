@@ -159,10 +159,10 @@ class Payment extends \Magento\Payment\Model\Method\Cc
     /**
      * Determine method availability based on quote amount and config data
      *
-     * @param null $quote
+     * @param \Magento\Quote\Api\Data\CartInterface|null $quote
      * @return bool
      */
-    public function isAvailable($quote = null)
+    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
         if ($quote && (
             $quote->getBaseGrandTotal() < $this->_minAmount
