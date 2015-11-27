@@ -11,9 +11,10 @@
 /*global define*/
 define(
     [
-        'Magento_Payment/js/view/payment/cc-form'
+        'Magento_Payment/js/view/payment/cc-form',
+        'jquery'
     ],
-    function (Component) {
+    function (Component, $) {
         'use strict';
 
         return Component.extend({
@@ -27,6 +28,11 @@ define(
 
             isActive: function() {
                 return true;
+            },
+
+            validate: function() {
+                var $form = $('#' + this.getCode() + '-form');
+                return $form.validation() && $form.validation('isValid');
             }
         });
     }
