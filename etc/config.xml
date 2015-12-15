@@ -18,7 +18,8 @@
                 <model>Inchoo\Stripe\Model\Payment</model>
                 <payment_action>authorize_capture</payment_action>
                 <title>Stripe</title>
-                <api_key backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <!--secret_key backend_model="Magento\Config\Model\Config\Backend\Encrypted" /-->
+                <!--publishable_key backend_model="Magento\Config\Model\Config\Backend\Encrypted" /-->
                 <cctypes>AE,VI,MC,DI,JCB</cctypes>
                 <allowspecific>0</allowspecific>
                 <min_order_total>0.50</min_order_total>

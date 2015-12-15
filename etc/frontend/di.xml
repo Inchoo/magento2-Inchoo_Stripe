@@ -12,6 +12,7 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
+    <!--
     <virtualType name="Inchoo\Stripe\Model\ConfigProvider" type="Magento\Payment\Model\CcGenericConfigProvider">
         <arguments>
             <argument name="methodCodes" xsi:type="array">
@@ -19,6 +20,27 @@
             </argument>
         </arguments>
     </virtualType>
+    -->
+
+    <virtualType name="Inchoo\Stripe\Model\Config" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Inchoo\Stripe\Model\Payment::CODE</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Inchoo\Stripe\Model\ConfigProvider">
+        <arguments>
+            <argument name="config" xsi:type="object">Inchoo\Stripe\Model\Config</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Payment\Model\CcGenericConfigProvider">
+        <arguments>
+            <argument name="methodCodes" xsi:type="array">
+                <item name="inchoo_stripe" xsi:type="const">Inchoo\Stripe\Model\Payment::CODE</item>
+            </argument>
+        </arguments>
+    </type>
 
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>

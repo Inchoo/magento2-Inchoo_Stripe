@@ -66,11 +66,47 @@ class Payment extends \Magento\Payment\Model\Method\Cc
 
         $this->_stripeApi = $stripe;
         $this->_stripeApi->setApiKey(
-            $this->getConfigData('api_key')
+            $this->getConfigData('secret_key')
         );
 
         $this->_minAmount = $this->getConfigData('min_order_total');
         $this->_maxAmount = $this->getConfigData('max_order_total');
+    }
+
+    /**
+     * Assign corresponding data
+     *
+     * @param \Magento\Framework\DataObject|mixed $data
+     * @return $this
+     * @throws LocalizedException
+     */
+    public function assignData(\Magento\Framework\DataObject $data)
+    {
+        parent::assignData($data);
+        $infoInstance = $this->getInfoInstance();
+
+        if($data->getCcToken()) {
+            $infoInstance->setAdditionalInformation('cc_token', $data->getCcToken());
+            //$infoInstance->setAdditionalInformation('cc_last4', $data->getData('cc_last4'));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Validate data
+     *
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function validate()
+    {
+        $token = $this->getInfoInstance()->getAdditionalInformation('cc_token');
+        if ($token) {
+            return $this;
+        } else {
+            return parent::validate();
+        }
     }
 
     /**
@@ -91,12 +127,14 @@ class Payment extends \Magento\Payment\Model\Method\Cc
         /** @var \Magento\Sales\Model\Order\Address $billing */
         $billing = $order->getBillingAddress();
 
+        $token = $this->getInfoInstance()->getAdditionalInformation('cc_token');
+
         try {
             $requestData = [
                 'amount'        => $amount * 100,
                 'currency'      => strtolower($order->getBaseCurrencyCode()),
                 'description'   => sprintf('#%s, %s', $order->getIncrementId(), $order->getCustomerEmail()),
-                'card'          => [
+                'card'          => $token ?: [
                     'number'            => $payment->getCcNumber(),
                     'exp_month'         => sprintf('%02d',$payment->getCcExpMonth()),
                     'exp_year'          => $payment->getCcExpYear(),
@@ -171,7 +209,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
             return false;
         }
 
-        if (!$this->getConfigData('api_key')) {
+        if (!$this->getConfigData('secret_key')) {
             return false;
         }
 
