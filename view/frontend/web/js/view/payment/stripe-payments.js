@@ -3,7 +3,7 @@
  *
  * @category    Inchoo
  * @package     Inchoo_Stripe
- * @author      Ivan Weiler <ivan.weiler@inchoo.net> & Stjepan Udovičić <stjepan.udovicic@inchoo.net>
+ * @author      Ivan Weiler & Stjepan Udovičić
  * @copyright   Inchoo (http://inchoo.net)
  * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
