@@ -4,7 +4,7 @@
  *
  * @category    Inchoo
  * @package     Inchoo_Stripe
- * @author      Ivan Weiler <ivan.weiler@inchoo.net> & Stjepan Udovičić <stjepan.udovicic@inchoo.net>
+ * @author      Ivan Weiler & Stjepan Udovičić
  * @copyright   Inchoo (http://inchoo.net)
  * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
@@ -159,10 +159,10 @@ class Payment extends \Magento\Payment\Model\Method\Cc
     /**
      * Determine method availability based on quote amount and config data
      *
-     * @param null $quote
+     * @param \Magento\Quote\Api\Data\CartInterface|null $quote
      * @return bool
      */
-    public function isAvailable($quote = null)
+    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
         if ($quote && (
             $quote->getBaseGrandTotal() < $this->_minAmount
