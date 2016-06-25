@@ -140,7 +140,7 @@ class Payment extends \Magento\Payment\Model\Method\Cc
         $transactionId = $payment->getParentTransactionId();
 
         try {
-            \Stripe\Charge::retrieve($transactionId)->refund();
+            \Stripe\Charge::retrieve($transactionId)->refund(['amount' => $amount * 100]);
         } catch (\Exception $e) {
             $this->debugData(['transaction_id' => $transactionId, 'exception' => $e->getMessage()]);
             $this->_logger->error(__('Payment refunding error.'));
